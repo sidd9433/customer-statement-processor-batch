@@ -2,7 +2,10 @@ package com.rabobank.statementprocessor.config;
 
 import com.rabobank.statementprocessor.model.StatementRecord;
 import com.rabobank.statementprocessor.processor.StatementRecordProcessor;
-import org.springframework.batch.core.*;
+import com.rabobank.statementprocessor.validator.InputParameterValidator;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParametersValidator;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
@@ -18,7 +21,6 @@ import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
-import org.springframework.batch.item.support.AbstractItemStreamItemWriter;
 import org.springframework.batch.item.xml.StaxEventItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,12 +28,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-import org.springframework.util.StringUtils;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Configuration
 @EnableBatchProcessing
@@ -78,28 +76,7 @@ public class BatchConfig {
 
     @Bean
     public JobParametersValidator validator() {
-        return jobParameters -> {
-            String fileName = jobParameters.getString("inputFile");
-
-            if (StringUtils.isEmpty(fileName)) {
-                throw new JobParametersInvalidException(
-                        "The inputFile parameter is required. Specify input file as a parameter [inputFile=<path to file>]");
-            }
-
-            if (!fileName.toLowerCase().endsWith(".xml") && !fileName.toLowerCase().endsWith(".csv")) {
-                throw new JobParametersInvalidException("Only csv & xml files are expected");
-            }
-
-            try {
-                Path file = Paths.get(fileName);
-                if (Files.notExists(file) || !Files.isReadable(file)) {
-                    throw new Exception("File did not exist or was not readable");
-                }
-            } catch (Exception e) {
-                throw new JobParametersInvalidException(
-                        "The inputFile parameter needs to be a valid file location/ file.");
-            }
-        };
+        return new InputParameterValidator();
     }
 
     @Bean
@@ -111,14 +88,14 @@ public class BatchConfig {
     @StepScope
     public AbstractItemCountingItemStreamItemReader<StatementRecord> reader(@Value("#{jobParameters[inputFile]}") String inputFile) {
 
-        if (inputFile.endsWith(".csv")) {
+        if (inputFile.toLowerCase().endsWith(".csv")) {
             FlatFileItemReader<StatementRecord> itemReader = new FlatFileItemReader<>();
             itemReader.setLineMapper(csvLineMapper());
             itemReader.setLinesToSkip(1);
             itemReader.setResource(new FileSystemResource(inputFile));
             itemReader.setStrict(false);
             return itemReader;
-        } else if (inputFile.endsWith(".xml")) {
+        } else if (inputFile.toLowerCase().endsWith(".xml")) {
             StaxEventItemReader<StatementRecord> xmlFileReader = new StaxEventItemReader<>();
             xmlFileReader.setResource(new FileSystemResource(inputFile));
             xmlFileReader.setFragmentRootElementName("record");
@@ -150,7 +127,7 @@ public class BatchConfig {
 
     @Bean
     @StepScope
-    public AbstractItemStreamItemWriter<StatementRecord> writer(@Value("#{jobParameters[inputFile]}") String inputFile) {
+    public FlatFileItemWriter<StatementRecord> writer(@Value("#{jobParameters[inputFile]}") String inputFile) {
 
         File file = new File(inputFile);
         FileSystemResource outputFile = new FileSystemResource(file.getParent() + "/validated-report.txt");
