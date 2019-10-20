@@ -25,7 +25,7 @@
 
 
 ## Design principle
-
+  
 * It's a command line application built using Spring batch.
 * All the modules ate loosely coupled & they have specific role to play.
 * Tried to keep the code as simple & readable as possible.
@@ -34,7 +34,7 @@
 
 * Job configuration -> ```BatchConfig``` controls the job.
 * Record Processor ->  ```StatementRecordProcessor``` processes the data for the output.
-* Validator ```InputParameterValidator``` validates the input
+* Validator ```InputParameterValidator``` validates the input.
 
 ## Code quality
 
