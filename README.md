@@ -26,7 +26,7 @@
 
 ## Design principle
 
-* It's a commandline application built using Spring batch.
+* It's a command line application built using Spring batch.
 * All the modules ate loosely coupled & they have specific role to play.
 * Tried to keep the code as simple & readable as possible.
 
