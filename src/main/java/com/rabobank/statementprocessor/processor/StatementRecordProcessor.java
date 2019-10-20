@@ -18,12 +18,12 @@ public class StatementRecordProcessor implements ItemProcessor<StatementRecord, 
     public StatementRecord process(StatementRecord statementRecord) {
 
         if (!validateReference(statementRecord)) {
-            LOGGER.warn(String.format("Unique reference validation failed: %s", statementRecord.toString()));
+            LOGGER.warn("Unique reference validation failed: {}", statementRecord.toString());
             return statementRecord;
         }
 
         if (!validateEndBalance(statementRecord)) {
-            LOGGER.warn(String.format("End balance validation failed: %s", statementRecord.toString()));
+            LOGGER.warn("End balance validation failed: {}", statementRecord.toString());
             return statementRecord;
         }
         return null;
