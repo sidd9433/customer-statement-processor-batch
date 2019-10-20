@@ -10,42 +10,33 @@
      * end balance needs to be validated 
      * Return both the transaction reference and description of each of the failed records
 
-## Quick Start
+## Quick Run
 
  * Clone this repository
  * Run `mvn clean package`
- * Run `mvn spring-boot:run`
+ * Navigate to `<project root>/target` folder
+ * Run `java -jar customer-statement-processor-batch-0.0.1-SNAPSHOT.jar inputFile=<absolute path>/<any of the input files, csv or xml>`
+ * Output report `validated-report.txt` with the validated data, will be generated on the same location of the input file.
  
      ##### Alternative
 
  * Import the project in your favourite IDE
- * Run the file `src/main/java/com/rabobank/statementprocessor/Application.java`
- 
-## Quick run
- 
- * The API can be reached at http://localhost:8080/customer/api/v1/process-statement
- * Upload the csv or xml file as 'file' attribute in POST body
+ * Run the file `src/main/java/com/rabobank/statementprocessor/Application.java`, program argument `inputFile=<absolute path>/<any of the input files, csv or xml>` has to be set before running.
+
 
 ## Design principle
 
+* It's a commandline application built using Spring batch.
 * All the modules ate loosely coupled & they have specific role to play.
-* Models are immutable.
-* Followed design patterns.
 * Tried to keep the code as simple & readable as possible.
 
 ## Outline of classes
 
-* Controller```StatementProcessorController``` handles th request & response.
-* Service ```StatementProcessorService``` prepares the output using other modules.
-* ```FileProcessorFactory``` is to create input file processor based on the file type
-* ```StatementValidator``` is for the validations.
+* Job configuration -> ```BatchConfig``` controls the job.
+* Record Processor ->  ```StatementRecordProcessor``` processes the data for the output.
+* Validator ```InputParameterValidator``` validates the input
 
 ## Code quality
 
  * SonarQube scan: ``mvn clean verify -P sonar``
- * SonarQube dashboard https://sonarcloud.io/dashboard?id=sidd9433_customer-statement-processor
-
-## Scope for betterment
-
-* Validator could have been designed in a better way, may be using `Factory` or `Chain of responsibility`.
-* JenkinsFile for CI/ CD pipeline.
+ * SonarCloud dashboard https://sonarcloud.io/dashboard?id=sidd9433_customer-statement-processor-batch
